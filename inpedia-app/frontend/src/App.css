@@ -13,7 +13,7 @@ body {
 /* ── Topbar ── */
 .topbar {
   display: flex; align-items: center; gap: 0.8rem;
-  padding: 0.9rem 1rem;
+  padding: 1.5rem 1rem;
   border-bottom: 1px solid #222;
   background: #111;
   flex-shrink: 0;
