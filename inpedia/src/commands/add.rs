@@ -1,75 +1,53 @@
-use anyhow::Result;
-use colored::Colorize;
-use dialoguer::{theme::ColorfulTheme, Confirm, Editor, Input};
+use anyhow::{bail, Context, Result};
 use inpedia_core::{open_db, Embedder, QuoteInsert};
+use crate::output;
 
-pub async fn run() -> Result<()> {
-    let theme = ColorfulTheme::default();
-
-    println!("{}", "── inpedia add ──────────────────────".cyan());
-
-    let quote: String = Input::with_theme(&theme)
-        .with_prompt("引用テキスト")
-        .interact_text()?;
-
-    let source_author: String = Input::with_theme(&theme)
-        .with_prompt("著者名 (空白でスキップ)")
-        .allow_empty(true)
-        .interact_text()?;
-
-    let source_title: String = Input::with_theme(&theme)
-        .with_prompt("出典タイトル (空白でスキップ)")
-        .allow_empty(true)
-        .interact_text()?;
-
-    let source_url: String = Input::with_theme(&theme)
-        .with_prompt("URL (空白でスキップ)")
-        .allow_empty(true)
-        .interact_text()?;
-
-    let tags_raw: String = Input::with_theme(&theme)
-        .with_prompt("タグ (カンマ区切り, 空白でスキップ)")
-        .allow_empty(true)
-        .interact_text()?;
+pub async fn run(
+    quote: String,
+    author: Option<String>,
+    title: Option<String>,
+    url: Option<String>,
+    tags_raw: Option<String>,
+    memo: Option<String>,
+    json: bool,
+) -> Result<()> {
+    let quote = quote.trim().to_string();
+    if quote.is_empty() {
+        bail!("--quote が空です。引用テキストを指定してください。");
+    }
 
     let tags: Vec<String> = tags_raw
+        .unwrap_or_default()
         .split(',')
         .map(|s| s.trim().to_string())
         .filter(|s| !s.is_empty())
         .collect();
 
-    let add_memo = Confirm::with_theme(&theme)
-        .with_prompt("メモを追加しますか？")
-        .default(false)
-        .interact()?;
+    output::print_info("embedding を生成中…", json);
 
-    let memo = if add_memo {
-        Editor::new().edit("# メモを入力してください\n")?
-    } else {
-        None
-    };
+    let mut embedder = Embedder::new()
+        .context("embedding モデルの初期化に失敗しました（ONNX Runtime / モデルファイルを確認してください）")?;
 
-    println!("{}", "embedding を生成中...".dimmed());
-    let mut embedder = Embedder::new()?;
-    let embedding = embedder.embed(&quote)?;
+    let embedding = embedder
+        .embed(&quote)
+        .context("embedding の生成に失敗しました")?;
 
-    let db = open_db()?;
-    let id = db.insert_quote(
-        &QuoteInsert {
-            quote: quote.clone(),
-            source_author: opt_str(source_author),
-            source_title: opt_str(source_title),
-            source_url: opt_str(source_url),
-            tags,
-            memo,
-        },
-        Some(embedding),
-    )?;
+    let db = open_db().context("データベースを開けませんでした")?;
 
-    println!("{} {}", "✓ 登録完了 id:".green(), id.bold());
+    let id = db
+        .insert_quote(
+            &QuoteInsert {
+                quote,
+                source_author: author,
+                source_title: title,
+                source_url: url,
+                tags,
+                memo,
+            },
+            Some(embedding),
+        )
+        .context("引用の保存に失敗しました")?;
+
+    output::print_ok(&id, json);
     Ok(())
-}
-
-fn opt_str(s: String) -> Option<String> {
-    if s.is_empty() { None } else { Some(s) }
 }

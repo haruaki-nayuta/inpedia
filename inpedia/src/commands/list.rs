@@ -1,35 +1,43 @@
-use anyhow::Result;
-use colored::Colorize;
+use anyhow::{Context, Result};
 use inpedia_core::open_db;
+use serde::Serialize;
+use crate::output;
 
-pub async fn run() -> Result<()> {
-    let db = open_db()?;
-    let quotes = db.list_quotes()?;
+#[derive(Serialize)]
+struct QuoteOut {
+    id: String,
+    quote: String,
+    source_author: Option<String>,
+    source_title: Option<String>,
+    source_url: Option<String>,
+    tags: Vec<String>,
+    latest_memo: Option<String>,
+    created_at: String,
+}
+
+pub async fn run(json: bool) -> Result<()> {
+    let db = open_db().context("データベースを開けませんでした")?;
+    let quotes = db.list_quotes().context("引用一覧の取得に失敗しました")?;
 
     if quotes.is_empty() {
-        println!("{}", "引用がまだ登録されていません。".yellow());
+        if json { println!("[]"); } else { eprintln!("{}", colored::Colorize::yellow("登録された引用はありません。")); }
         return Ok(());
     }
 
-    println!("{} {} 件", "── 引用一覧".cyan(), quotes.len());
-    for q in &quotes {
-        let author = q
-            .source_author
-            .as_deref()
-            .unwrap_or("—");
-        let tags = if q.tags.is_empty() {
-            String::new()
-        } else {
-            format!("  [{}]", q.tags.join(", "))
-        };
-        println!(
-            "\n{}\n  {}  {}{}\n  {}",
-            q.id.dimmed(),
-            q.quote.white().bold(),
-            author.italic(),
-            tags.dimmed(),
-            q.created_at.format("%Y-%m-%d").to_string().dimmed(),
-        );
-    }
+    let out: Vec<QuoteOut> = quotes.iter().map(|q| {
+        let memo = db.latest_memo(&q.id).ok().flatten().map(|m| m.memo);
+        QuoteOut {
+            id: q.id.clone(),
+            quote: q.quote.clone(),
+            source_author: q.source_author.clone(),
+            source_title: q.source_title.clone(),
+            source_url: q.source_url.clone(),
+            tags: q.tags.clone(),
+            latest_memo: memo,
+            created_at: q.created_at.format("%Y-%m-%d").to_string(),
+        }
+    }).collect();
+
+    output::print_data(&format!("引用一覧 {} 件", out.len()), &out, json);
     Ok(())
 }

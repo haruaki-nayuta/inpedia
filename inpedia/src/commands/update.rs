@@ -1,33 +1,25 @@
-use anyhow::Result;
-use colored::Colorize;
-use dialoguer::{theme::ColorfulTheme, Editor};
+use anyhow::{Context, Result};
 use inpedia_core::open_db;
+use crate::output;
+use serde_json::json;
 
-pub async fn run(id: &str) -> Result<()> {
-    let db = open_db()?;
-    let quote = db
-        .get_quote(id)?
-        .ok_or_else(|| anyhow::anyhow!("ID が見つかりません: {}", id))?;
+pub async fn run(id: &str, memo: &str, json: bool) -> Result<()> {
+    let db = open_db().context("データベースを開けませんでした")?;
 
-    println!("{}", "── inpedia update ───────────────────".cyan());
-    println!("  {}", quote.quote.white());
-    println!();
+    // Verify the quote exists before updating
+    db.get_quote(id)
+        .context("データベースの検索に失敗しました")?
+        .ok_or_else(|| anyhow::anyhow!("ID '{}' の引用が見つかりません", id))?;
 
-    let current = db
-        .latest_memo(id)?
-        .map(|mv| mv.memo)
-        .unwrap_or_default();
+    let version = db
+        .add_memo_version(id, memo)
+        .context("メモバージョンの保存に失敗しました")?;
 
-    let new_memo = Editor::new()
-        .edit(&current)?
-        .ok_or_else(|| anyhow::anyhow!("編集がキャンセルされました"))?;
-
-    if new_memo.trim() == current.trim() {
-        println!("{}", "変更なし".yellow());
-        return Ok(());
+    if json {
+        println!("{}", json!({"ok": true, "id": id, "version": version}));
+    } else {
+        use colored::Colorize;
+        println!("{} id={} v{}", "✓ メモ更新".green(), id.dimmed(), version);
     }
-
-    let version = db.add_memo_version(id, &new_memo)?;
-    println!("{} v{}", "✓ メモ更新完了".green(), version);
     Ok(())
 }

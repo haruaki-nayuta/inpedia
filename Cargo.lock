@@ -2321,6 +2321,7 @@ dependencies = [
  "colored",
  "dialoguer",
  "inpedia-core",
+ "serde",
  "serde_json",
  "similar",
  "tokio",
