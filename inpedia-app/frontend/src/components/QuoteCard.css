@@ -1,0 +1,49 @@
+.card {
+  background: #1a1a1a;
+  border: 1px solid #2e2e2e;
+  border-radius: 6px;
+  padding: 1rem 1.2rem;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.card:hover { border-color: #555; }
+
+.card-quote {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #e8e8e8;
+  margin: 0 0 0.5rem;
+}
+
+.card-meta {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: #888;
+  margin-bottom: 0.4rem;
+}
+.meta-author { font-style: italic; }
+.meta-title  { font-style: italic; }
+.meta-score  { margin-left: auto; color: #555; }
+
+.card-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+.tag {
+  background: #252525;
+  border: 1px solid #333;
+  border-radius: 3px;
+  padding: 0 0.4rem;
+  font-size: 0.75rem;
+  color: #aaa;
+}
+
+.card-memo {
+  font-size: 0.85rem;
+  color: #999;
+  border-top: 1px solid #2a2a2a;
+  padding-top: 0.5rem;
+  margin-top: 0.5rem;
+  white-space: pre-wrap;
+}
+
+.inline-asset { max-width: 100%; border-radius: 4px; display: block; margin: 0.4rem 0; }

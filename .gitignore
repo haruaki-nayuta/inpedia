@@ -1,0 +1,19 @@
+# Build artifacts
+/target/
+/inpedia-app/frontend/node_modules/
+/inpedia-app/frontend/dist/
+
+# fastembed model cache (large ONNX files)
+/inpedia-app/src-tauri/.fastembed_cache/
+
+# Tauri generated files
+/inpedia-app/src-tauri/gen/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp

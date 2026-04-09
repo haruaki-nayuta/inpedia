@@ -1,0 +1,51 @@
+.add-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+}
+.add-panel {
+  background: #141414;
+  border: 1px solid #333;
+  border-radius: 8px;
+  width: min(560px, 95vw);
+  display: flex; flex-direction: column;
+}
+.add-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.8rem 1rem; border-bottom: 1px solid #2a2a2a;
+  font-size: 0.9rem; color: #bbb;
+}
+.add-close { background: none; border: none; color: #666; cursor: pointer; font-size: 1rem; }
+.add-close:hover { color: #ccc; }
+.add-body {
+  padding: 1rem; display: flex; flex-direction: column; gap: 0.7rem;
+  overflow-y: auto; max-height: 65vh;
+}
+.add-body label {
+  display: flex; flex-direction: column; gap: 0.25rem;
+  font-size: 0.8rem; color: #888;
+}
+.add-body input, .add-body textarea {
+  background: #1e1e1e; border: 1px solid #333; border-radius: 4px;
+  color: #ddd; padding: 0.4rem 0.6rem; font-size: 0.9rem; resize: vertical;
+}
+.add-body input:focus, .add-body textarea:focus {
+  outline: none; border-color: #555;
+}
+.add-error { color: #e07070; font-size: 0.8rem; }
+.add-footer {
+  display: flex; justify-content: flex-end; gap: 0.5rem;
+  padding: 0.8rem 1rem; border-top: 1px solid #2a2a2a;
+}
+.btn-cancel {
+  background: none; border: 1px solid #333; color: #888;
+  border-radius: 4px; padding: 0.4rem 0.9rem; cursor: pointer;
+}
+.btn-cancel:hover { border-color: #555; color: #bbb; }
+.btn-submit {
+  background: #2a5a2a; border: none; color: #9de09d;
+  border-radius: 4px; padding: 0.4rem 1rem; cursor: pointer; font-weight: 600;
+}
+.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-submit:not(:disabled):hover { background: #336633; }
