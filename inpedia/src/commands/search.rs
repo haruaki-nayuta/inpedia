@@ -8,10 +8,7 @@ struct SearchResultOut {
     id: String,
     score: f32,
     quote: String,
-    source_author: Option<String>,
-    source_title: Option<String>,
-    source_url: Option<String>,
-    tags: Vec<String>,
+    source: Option<String>,
     latest_memo: Option<String>,
     created_at: String,
 }
@@ -46,10 +43,7 @@ pub async fn run(query: &str, top: usize, json: bool) -> Result<()> {
                 id: r.quote.id.clone(),
                 score: r.score,
                 quote: r.quote.quote.clone(),
-                source_author: r.quote.source_author.clone(),
-                source_title: r.quote.source_title.clone(),
-                source_url: r.quote.source_url.clone(),
-                tags: r.quote.tags.clone(),
+                source: r.quote.source.clone(),
                 latest_memo: memo,
                 created_at: r.quote.created_at.format("%Y-%m-%d").to_string(),
             }
@@ -64,10 +58,7 @@ pub async fn run(query: &str, top: usize, json: bool) -> Result<()> {
         for (i, r) in out.iter().enumerate() {
             println!("\n{} {}  {}", format!("[{}]", i + 1).bold(), format!("score: {:.3}", r.score).dimmed(), r.id.dimmed());
             println!("  {}", r.quote.white());
-            if let Some(a) = &r.source_author { print!("  — {}", a.italic()); }
-            if let Some(t) = &r.source_title  { print!("  『{}』", t.italic()); }
-            if !r.tags.is_empty() { print!("  {}", r.tags.join(", ").dimmed()); }
-            println!();
+            if let Some(s) = &r.source { println!("  — {}", s.italic()); }
             if let Some(m) = &r.latest_memo { if !m.is_empty() { println!("  {}", m.trim().dimmed()); } }
         }
     }

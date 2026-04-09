@@ -1,10 +1,7 @@
 export interface QuoteDto {
   id: string;
   quote: string;
-  source_title?: string;
-  source_author?: string;
-  source_url?: string;
-  tags: string[];
+  source?: string;
   created_at: string;
   latest_memo?: string;
 }
@@ -22,9 +19,6 @@ export interface MemoVersionDto {
 
 export interface AddQuoteInput {
   quote: string;
-  source_title?: string;
-  source_author?: string;
-  source_url?: string;
-  tags: string[];
+  source?: string;
   memo?: string;
 }

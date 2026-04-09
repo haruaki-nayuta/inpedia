@@ -22,7 +22,7 @@ inpedia — 引用の電子辞書 + CMS
 
 【LLM 向け利用例】
   # 引用を登録して ID を受け取る
-  inpedia add --json -q \"存在するとは知覚されることである\" -a \"バークリー\" -g \"哲学,認識論\"
+  inpedia add --json -q \"存在するとは知覚されることである\" -s \"バークリー『人知原理論』\"
   => {\"ok\": \"<uuid>\"}
 
   # 意味的に近い引用を検索する
@@ -66,27 +66,15 @@ struct Cli {
 enum Cmd {
     /// 引用を登録して ID を返す
     ///
-    /// Example: inpedia add --quote "存在するとは知覚されることである" --author "バークリー" --tags "哲学,認識論"
+    /// Example: inpedia add --quote "存在するとは知覚されることである" --source "バークリー『人知原理論』"
     Add {
         /// 引用テキスト（必須）
         #[arg(long, short)]
         quote: String,
 
-        /// 著者名
+        /// 引用元（著者・書籍・URL など自由記述）
         #[arg(long, short)]
-        author: Option<String>,
-
-        /// 出典タイトル
-        #[arg(long, short = 't')]
-        title: Option<String>,
-
-        /// 出典 URL
-        #[arg(long, short = 'u')]
-        url: Option<String>,
-
-        /// タグ（カンマ区切り）
-        #[arg(long, short = 'g')]
-        tags: Option<String>,
+        source: Option<String>,
 
         /// メモ（{{img:hash}} / {{vid:hash}} 記法使用可）
         #[arg(long, short = 'm')]
@@ -120,11 +108,9 @@ enum Cmd {
     /// 全引用を一覧表示
     List,
 
-    /// タグで絞り込み
-    ///
-    /// Example: inpedia tag 哲学
+    /// タグで絞り込み（廃止: tag フィールドはなくなりました。メモや引用元に記述してください）
+    #[command(hide = true)]
     Tag {
-        /// タグ名
         tag: String,
     },
 
@@ -151,16 +137,18 @@ async fn main() {
     let json = cli.json;
 
     let result = match cli.command {
-        Cmd::Add { quote, author, title, url, tags, memo } =>
-            commands::add::run(quote, author, title, url, tags, memo, json).await,
+        Cmd::Add { quote, source, memo } =>
+            commands::add::run(quote, source, memo, json).await,
         Cmd::Search { query, top } =>
             commands::search::run(&query, top, json).await,
         Cmd::Update { id, memo } =>
             commands::update::run(&id, &memo, json).await,
         Cmd::List =>
             commands::list::run(json).await,
-        Cmd::Tag { tag } =>
-            commands::tag::run(&tag, json).await,
+        Cmd::Tag { tag: _ } => {
+            output::print_error("tag コマンドは廃止されました。メモや引用元フィールドに分類を記載してください。", json);
+            std::process::exit(1);
+        }
         Cmd::History { id } =>
             commands::history::run(&id, json).await,
         Cmd::Get { id } =>

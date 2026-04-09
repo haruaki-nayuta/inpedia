@@ -10,10 +10,7 @@ interface Props {
 
 export function AddForm({ onAdded, onClose }: Props) {
   const [quote, setQuote] = useState("");
-  const [author, setAuthor] = useState("");
-  const [title, setTitle] = useState("");
-  const [url, setUrl] = useState("");
-  const [tagsRaw, setTagsRaw] = useState("");
+  const [source, setSource] = useState("");
   const [memo, setMemo] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>();
@@ -26,10 +23,7 @@ export function AddForm({ onAdded, onClose }: Props) {
     try {
       const input: AddQuoteInput = {
         quote: quote.trim(),
-        source_author: author.trim() || undefined,
-        source_title: title.trim() || undefined,
-        source_url: url.trim() || undefined,
-        tags: tagsRaw.split(",").map((t) => t.trim()).filter(Boolean),
+        source: source.trim() || undefined,
         memo: memo.trim() || undefined,
       };
       await api.add(input);
@@ -61,10 +55,14 @@ export function AddForm({ onAdded, onClose }: Props) {
               autoFocus
             />
           </label>
-          <label>著者<input value={author} onChange={(e) => setAuthor(e.target.value)} /></label>
-          <label>出典タイトル<input value={title} onChange={(e) => setTitle(e.target.value)} /></label>
-          <label>URL<input value={url} onChange={(e) => setUrl(e.target.value)} /></label>
-          <label>タグ（カンマ区切り）<input value={tagsRaw} onChange={(e) => setTagsRaw(e.target.value)} placeholder="認知, 哲学" /></label>
+          <label>
+            引用元
+            <input
+              value={source}
+              onChange={(e) => setSource(e.target.value)}
+              placeholder="著者名・書籍・URL など"
+            />
+          </label>
           <label>
             メモ
             <textarea value={memo} onChange={(e) => setMemo(e.target.value)} rows={3} />

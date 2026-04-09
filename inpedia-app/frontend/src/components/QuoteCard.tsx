@@ -38,20 +38,11 @@ export function QuoteCard({ quote: q, score, onSelect }: Props) {
       <p className="card-quote">&#8220;{q.quote}&#8221;</p>
 
       <div className="card-meta">
-        {q.source_author && <span className="meta-author">— {q.source_author}</span>}
-        {q.source_title && <span className="meta-title">『{q.source_title}』</span>}
+        {q.source && <span className="meta-source">— {q.source}</span>}
         {score !== undefined && (
           <span className="meta-score">score {score.toFixed(3)}</span>
         )}
       </div>
-
-      {q.tags.length > 0 && (
-        <div className="card-tags">
-          {q.tags.map((t) => (
-            <span key={t} className="tag">{t}</span>
-          ))}
-        </div>
-      )}
 
       {q.latest_memo && (
         <div className="card-memo">{renderMemo(q.latest_memo)}</div>

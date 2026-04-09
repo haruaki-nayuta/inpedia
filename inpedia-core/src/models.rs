@@ -5,11 +5,8 @@ use serde::{Deserialize, Serialize};
 pub struct Quote {
     pub id: String,
     pub quote: String,
-    pub source_title: Option<String>,
-    pub source_author: Option<String>,
-    pub source_url: Option<String>,
-    /// JSON array of tag strings
-    pub tags: Vec<String>,
+    /// Free-text source/reference (author, title, URL, etc.)
+    pub source: Option<String>,
     pub created_at: DateTime<Utc>,
 }
 
@@ -36,10 +33,8 @@ pub struct Asset {
 #[derive(Debug)]
 pub struct QuoteInsert {
     pub quote: String,
-    pub source_title: Option<String>,
-    pub source_author: Option<String>,
-    pub source_url: Option<String>,
-    pub tags: Vec<String>,
+    /// Free-text source/reference
+    pub source: Option<String>,
     pub memo: Option<String>,
 }
 

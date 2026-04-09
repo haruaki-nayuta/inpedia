@@ -37,10 +37,7 @@ pub fn add_quote(input: AddQuoteInput, state: State<'_, AppState>) -> Result<Str
     let embedding = embedder.embed(&input.quote).map_err(|e| e.to_string())?;
     db.insert_quote(&QuoteInsert {
         quote: input.quote,
-        source_title: input.source_title,
-        source_author: input.source_author,
-        source_url: input.source_url,
-        tags: input.tags,
+        source: input.source,
         memo: input.memo,
     }, Some(embedding)).map_err(|e| e.to_string())
 }
@@ -61,14 +58,4 @@ pub fn get_history(quote_id: String) -> Result<Vec<MemoVersionDto>, String> {
 pub fn update_memo(quote_id: String, memo: String) -> Result<i64, String> {
     let db = open_db().map_err(|e| e.to_string())?;
     db.add_memo_version(&quote_id, &memo).map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-pub fn list_by_tag(tag: String) -> Result<Vec<QuoteDto>, String> {
-    let db = open_db().map_err(|e| e.to_string())?;
-    let quotes = db.list_quotes_by_tag(&tag).map_err(|e| e.to_string())?;
-    Ok(quotes.into_iter().map(|q| {
-        let memo = db.latest_memo(&q.id).ok().flatten().map(|m| m.memo);
-        quote_to_dto(q, memo)
-    }).collect())
 }

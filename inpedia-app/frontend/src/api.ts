@@ -12,8 +12,6 @@ export const api = {
 
   list: () => invoke<QuoteDto[]>("list_quotes"),
 
-  listByTag: (tag: string) => invoke<QuoteDto[]>("list_by_tag", { tag }),
-
   add: (input: AddQuoteInput) => invoke<string>("add_quote", { input }),
 
   history: (quoteId: string) =>

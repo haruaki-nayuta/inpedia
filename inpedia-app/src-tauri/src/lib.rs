@@ -14,10 +14,7 @@ pub struct AppState {
 pub struct QuoteDto {
     pub id: String,
     pub quote: String,
-    pub source_title: Option<String>,
-    pub source_author: Option<String>,
-    pub source_url: Option<String>,
-    pub tags: Vec<String>,
+    pub source: Option<String>,
     pub created_at: String,
     pub latest_memo: Option<String>,
 }
@@ -38,10 +35,7 @@ pub struct MemoVersionDto {
 #[derive(Serialize, Deserialize)]
 pub struct AddQuoteInput {
     pub quote: String,
-    pub source_title: Option<String>,
-    pub source_author: Option<String>,
-    pub source_url: Option<String>,
-    pub tags: Vec<String>,
+    pub source: Option<String>,
     pub memo: Option<String>,
 }
 
@@ -49,10 +43,7 @@ pub fn quote_to_dto(q: inpedia_core::Quote, latest_memo: Option<String>) -> Quot
     QuoteDto {
         id: q.id,
         quote: q.quote,
-        source_title: q.source_title,
-        source_author: q.source_author,
-        source_url: q.source_url,
-        tags: q.tags,
+        source: q.source,
         created_at: q.created_at.format("%Y-%m-%d").to_string(),
         latest_memo,
     }
@@ -74,7 +65,6 @@ pub fn run() {
             commands::add_quote,
             commands::get_history,
             commands::update_memo,
-            commands::list_by_tag,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

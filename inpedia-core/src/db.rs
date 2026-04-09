@@ -22,14 +22,11 @@ impl Db {
         self.conn.execute_batch(
             "
             CREATE TABLE IF NOT EXISTS quotes (
-                id            TEXT PRIMARY KEY,
-                quote         TEXT NOT NULL,
-                source_title  TEXT,
-                source_author TEXT,
-                source_url    TEXT,
-                tags          TEXT NOT NULL DEFAULT '[]',
-                embedding     BLOB,
-                created_at    TEXT NOT NULL
+                id         TEXT PRIMARY KEY,
+                quote      TEXT NOT NULL,
+                source     TEXT,
+                embedding  BLOB,
+                created_at TEXT NOT NULL
             );
 
             CREATE TABLE IF NOT EXISTS memo_versions (
@@ -48,6 +45,10 @@ impl Db {
             );
             ",
         )?;
+
+        // v1 → v2: add source column on existing databases (ignore if already present)
+        let _ = self.conn.execute("ALTER TABLE quotes ADD COLUMN source TEXT", []);
+
         Ok(())
     }
 
@@ -56,22 +57,11 @@ impl Db {
     pub fn insert_quote(&self, input: &QuoteInsert, embedding: Option<Vec<f32>>) -> Result<String> {
         let id = uuid::Uuid::new_v4().to_string();
         let now = Utc::now().to_rfc3339();
-        let tags_json = serde_json::to_string(&input.tags)?;
         let emb_blob = embedding.map(embedding_to_blob);
 
         self.conn.execute(
-            "INSERT INTO quotes (id, quote, source_title, source_author, source_url, tags, embedding, created_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
-            params![
-                id,
-                input.quote,
-                input.source_title,
-                input.source_author,
-                input.source_url,
-                tags_json,
-                emb_blob,
-                now,
-            ],
+            "INSERT INTO quotes (id, quote, source, embedding, created_at) VALUES (?1, ?2, ?3, ?4, ?5)",
+            params![id, input.quote, input.source, emb_blob, now],
         )?;
 
         // Insert initial memo version (version=1, even if empty)
@@ -86,7 +76,7 @@ impl Db {
 
     pub fn get_quote(&self, id: &str) -> Result<Option<Quote>> {
         let mut stmt = self.conn.prepare(
-            "SELECT id, quote, source_title, source_author, source_url, tags, created_at FROM quotes WHERE id = ?1",
+            "SELECT id, quote, source, created_at FROM quotes WHERE id = ?1",
         )?;
         let mut rows = stmt.query(params![id])?;
         if let Some(row) = rows.next()? {
@@ -98,19 +88,9 @@ impl Db {
 
     pub fn list_quotes(&self) -> Result<Vec<Quote>> {
         let mut stmt = self.conn.prepare(
-            "SELECT id, quote, source_title, source_author, source_url, tags, created_at FROM quotes ORDER BY created_at DESC",
+            "SELECT id, quote, source, created_at FROM quotes ORDER BY created_at DESC",
         )?;
         let rows = stmt.query_map([], |row| row_to_quote(row))?;
-        rows.map(|r| r.map_err(anyhow::Error::from)).collect()
-    }
-
-    pub fn list_quotes_by_tag(&self, tag: &str) -> Result<Vec<Quote>> {
-        // tags is a JSON array; use LIKE for simple matching
-        let pattern = format!("%\"{}%", tag);
-        let mut stmt = self.conn.prepare(
-            "SELECT id, quote, source_title, source_author, source_url, tags, created_at FROM quotes WHERE tags LIKE ?1 ORDER BY created_at DESC",
-        )?;
-        let rows = stmt.query_map(params![pattern], |row| row_to_quote(row))?;
         rows.map(|r| r.map_err(anyhow::Error::from)).collect()
     }
 
@@ -224,16 +204,11 @@ impl Db {
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 fn row_to_quote(row: &rusqlite::Row<'_>) -> Result<Quote, rusqlite::Error> {
-    let tags_json: String = row.get(5)?;
-    let tags: Vec<String> = serde_json::from_str(&tags_json).unwrap_or_default();
-    let created_at_str: String = row.get(6)?;
+    let created_at_str: String = row.get(3)?;
     Ok(Quote {
         id: row.get(0)?,
         quote: row.get(1)?,
-        source_title: row.get(2)?,
-        source_author: row.get(3)?,
-        source_url: row.get(4)?,
-        tags,
+        source: row.get(2)?,
         created_at: created_at_str
             .parse::<chrono::DateTime<chrono::Utc>>()
             .unwrap_or_default(),

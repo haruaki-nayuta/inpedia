@@ -16,19 +16,16 @@ export default function App() {
   const [searching, setSearching] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [history, setHistory] = useState<{ quote: QuoteDto; versions: MemoVersionDto[] } | null>(null);
-  const [tagFilter, setTagFilter] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   const loadList = useCallback(async () => {
     try {
-      const qs = tagFilter.trim()
-        ? await api.listByTag(tagFilter.trim())
-        : await api.list();
+      const qs = await api.list();
       setAllQuotes(qs);
     } catch (e) {
       console.error(e);
     }
-  }, [tagFilter]);
+  }, []);
 
   useEffect(() => {
     if (view === "list") loadList();
@@ -98,12 +95,6 @@ export default function App() {
       {/* ── List view ── */}
       {view === "list" && (
         <div className="list-view">
-          <input
-            className="tag-input"
-            placeholder="タグで絞り込み…"
-            value={tagFilter}
-            onChange={(e) => setTagFilter(e.target.value)}
-          />
           <div className="cards">
             {allQuotes.map((q) => (
               <QuoteCard key={q.id} quote={q} onSelect={openHistory} />

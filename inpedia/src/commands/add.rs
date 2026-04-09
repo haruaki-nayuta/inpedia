@@ -4,10 +4,7 @@ use crate::output;
 
 pub async fn run(
     quote: String,
-    author: Option<String>,
-    title: Option<String>,
-    url: Option<String>,
-    tags_raw: Option<String>,
+    source: Option<String>,
     memo: Option<String>,
     json: bool,
 ) -> Result<()> {
@@ -15,13 +12,6 @@ pub async fn run(
     if quote.is_empty() {
         bail!("--quote が空です。引用テキストを指定してください。");
     }
-
-    let tags: Vec<String> = tags_raw
-        .unwrap_or_default()
-        .split(',')
-        .map(|s| s.trim().to_string())
-        .filter(|s| !s.is_empty())
-        .collect();
 
     output::print_info("embedding を生成中…", json);
 
@@ -36,14 +26,7 @@ pub async fn run(
 
     let id = db
         .insert_quote(
-            &QuoteInsert {
-                quote,
-                source_author: author,
-                source_title: title,
-                source_url: url,
-                tags,
-                memo,
-            },
+            &QuoteInsert { quote, source, memo },
             Some(embedding),
         )
         .context("引用の保存に失敗しました")?;

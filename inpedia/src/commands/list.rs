@@ -7,10 +7,7 @@ use crate::output;
 struct QuoteOut {
     id: String,
     quote: String,
-    source_author: Option<String>,
-    source_title: Option<String>,
-    source_url: Option<String>,
-    tags: Vec<String>,
+    source: Option<String>,
     latest_memo: Option<String>,
     created_at: String,
 }
@@ -29,10 +26,7 @@ pub async fn run(json: bool) -> Result<()> {
         QuoteOut {
             id: q.id.clone(),
             quote: q.quote.clone(),
-            source_author: q.source_author.clone(),
-            source_title: q.source_title.clone(),
-            source_url: q.source_url.clone(),
-            tags: q.tags.clone(),
+            source: q.source.clone(),
             latest_memo: memo,
             created_at: q.created_at.format("%Y-%m-%d").to_string(),
         }
