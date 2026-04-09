@@ -3,12 +3,55 @@ use clap::{Parser, Subcommand};
 mod commands;
 pub mod output;
 
+const LONG_ABOUT: &str = "\
+inpedia — 引用の電子辞書 + CMS
+
+【概要】
+  テキスト引用をローカル SQLite に保存し、自然言語でセマンティック検索できるツール。
+  fastembed + multilingual-e5-small による埋め込みをすべてローカルで生成する。
+  メモは版管理（追記のみ）、メディア（画像・動画）はインライン記法で埋め込み可能。
+
+【データ保存先】
+  ~/.inpedia/inpedia.db   (SQLite)
+  ~/.inpedia/assets/      (メディアファイル)
+
+【LLM からの利用方法】
+  --json フラグを付けると全コマンドの出力が JSON になる。
+  成功時:  {\"ok\": ...} または JSON 配列
+  エラー時: {\"error\": \"具体的なメッセージ\"} が stdout に出力され exit code 1 を返す。
+
+【LLM 向け利用例】
+  # 引用を登録して ID を受け取る
+  inpedia add --json -q \"存在するとは知覚されることである\" -a \"バークリー\" -g \"哲学,認識論\"
+  => {\"ok\": \"<uuid>\"}
+
+  # 意味的に近い引用を検索する
+  inpedia search --json \"自由意志と決定論\" --top 5
+  => [{\"id\":\"...\",\"score\":0.91,\"quote\":\"...\", ...}, ...]
+
+  # ID で1件取得
+  inpedia get --json <id>
+  => {\"id\":\"...\", \"quote\":\"...\", \"tags\":[...], \"latest_memo\":\"...\", ...}
+
+  # メモを更新（旧版は自動保持）
+  inpedia update --json <id> --memo \"新しいメモ内容\"
+  => {\"ok\": true, \"id\": \"...\", \"version\": 2}
+
+  # タグで絞り込み
+  inpedia tag --json 哲学
+  => [{\"id\":\"...\", \"quote\":\"...\", \"tags\":[\"哲学\"], ...}, ...]
+
+  # メモの版の変遷を取得（差分付き）
+  inpedia history --json <id>
+  => [{\"version\":1,\"memo\":\"...\",\"diff_from_prev\":null}, {\"version\":2, ...}]";
+
 #[derive(Parser)]
 #[command(
     name = "inpedia",
-    about = "引用の電子辞書 + CMS",
+    about = "引用の電子辞書 + CMS — ローカル完結のセマンティック検索付き引用管理ツール",
+    long_about = LONG_ABOUT,
     version,
-    after_help = "出力は --json フラグで JSON 形式に切り替えられます。\nエラー時は exit code 1 を返します。"
+    after_help = "詳細なオプションは各サブコマンドの --help で確認できます。例: inpedia add --help",
 )]
 struct Cli {
     /// 出力を JSON 形式にする（LLM・スクリプト連携用）
