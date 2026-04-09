@@ -1,0 +1,104 @@
+.qd {
+  padding: 2rem 2.5rem;
+  max-width: 760px;
+}
+
+.qd-quote {
+  margin: 0 0 1rem;
+  padding: 0;
+  border-left: 3px solid #3a6a3a;
+  padding-left: 1.2rem;
+  font-size: 1.15rem;
+  line-height: 1.75;
+  color: #e8e8e8;
+  white-space: pre-wrap;
+  font-style: italic;
+}
+
+.qd-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  font-size: 0.82rem;
+  color: #777;
+}
+.qd-source { font-style: italic; }
+.qd-score { color: #4a8a4a; }
+.qd-date { margin-left: auto; color: #444; }
+
+.qd-memo {
+  background: #161616;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+  padding: 1rem 1.2rem;
+  margin-bottom: 1.5rem;
+}
+.qd-memo-label {
+  margin: 0 0 0.6rem;
+  font-size: 0.75rem;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.qd-memo-body {
+  margin: 0;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: #bbb;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ── History ── */
+.qd-history { margin-top: 0.5rem; }
+.qd-history-btn {
+  background: none;
+  border: none;
+  color: #555;
+  cursor: pointer;
+  font-size: 0.82rem;
+  padding: 0;
+  margin-bottom: 0.8rem;
+}
+.qd-history-btn:hover { color: #888; }
+
+.qd-history-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+.qd-version {
+  border: 1px solid #222;
+  border-radius: 5px;
+  overflow: hidden;
+}
+.qd-version-label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.8rem;
+  background: #181818;
+  font-size: 0.78rem;
+  color: #666;
+  border-bottom: 1px solid #222;
+}
+.qd-version-date { color: #444; }
+
+/* diff shared */
+.diff-pre {
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: #141414;
+  color: #aaa;
+}
+.diff-add { background: #0d2b0d; color: #7ec87e; display: inline; }
+.diff-del { background: #2b0d0d; color: #e07070; display: inline; text-decoration: line-through; }
+.diff-eq  { color: #777; }

@@ -1,22 +1,20 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { api } from "./api";
 import type { QuoteDto, SearchResultDto, MemoVersionDto } from "./types";
-import { QuoteCard } from "./components/QuoteCard";
-import { DiffView } from "./components/DiffView";
+import { QuoteDetail } from "./components/QuoteDetail";
 import { AddForm } from "./components/AddForm";
 import "./App.css";
 
-type View = "search" | "list";
+type SidebarItem = { quote: QuoteDto; score?: number };
 
 export default function App() {
-  const [view, setView] = useState<View>("search");
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchResultDto[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchResultDto[]>([]);
   const [allQuotes, setAllQuotes] = useState<QuoteDto[]>([]);
   const [searching, setSearching] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
-  const [history, setHistory] = useState<{ quote: QuoteDto; versions: MemoVersionDto[] } | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [selected, setSelected] = useState<SidebarItem | null>(null);
+  const [selectedVersions, setSelectedVersions] = useState<MemoVersionDto[]>([]);
 
   const loadList = useCallback(async () => {
     try {
@@ -27,90 +25,86 @@ export default function App() {
     }
   }, []);
 
-  useEffect(() => {
-    if (view === "list") loadList();
-  }, [view, loadList]);
+  useEffect(() => { loadList(); }, [loadList]);
 
   useEffect(() => {
-    if (!query.trim()) { setResults([]); return; }
-    const timer = setTimeout(async () => {
+    if (!query.trim()) { setSearchResults([]); return; }
+    const t = setTimeout(async () => {
       setSearching(true);
-      try {
-        const res = await api.search(query, 10);
-        setResults(res);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setSearching(false);
-      }
+      try { setSearchResults(await api.search(query, 20)); }
+      catch (e) { console.error(e); }
+      finally { setSearching(false); }
     }, 400);
-    return () => clearTimeout(timer);
+    return () => clearTimeout(t);
   }, [query]);
 
-  async function openHistory(q: QuoteDto) {
-    const versions = await api.history(q.id);
-    setHistory({ quote: q, versions });
+  async function selectQuote(q: QuoteDto, score?: number) {
+    setSelected({ quote: q, score });
+    try {
+      const versions = await api.history(q.id);
+      setSelectedVersions(versions);
+    } catch (e) {
+      console.error(e);
+      setSelectedVersions([]);
+    }
   }
+
+  const items: SidebarItem[] = query.trim()
+    ? searchResults.map((r) => ({ quote: r.quote, score: r.score }))
+    : allQuotes.map((q) => ({ quote: q }));
 
   return (
     <div className="app">
-      {/* ── Top bar ── */}
       <header className="topbar">
         <span className="logo">inpedia</span>
-        <nav className="nav">
-          <button className={view === "search" ? "active" : ""} onClick={() => setView("search")}>検索</button>
-          <button className={view === "list" ? "active" : ""} onClick={() => setView("list")}>一覧</button>
-        </nav>
+        <input
+          className="search-input"
+          placeholder="検索…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          autoFocus
+        />
+        {searching && <span className="searching-dot">●</span>}
         <button className="btn-add" onClick={() => setShowAdd(true)}>+ 追加</button>
       </header>
 
-      {/* ── Search view ── */}
-      {view === "search" && (
-        <div className="search-view">
-          <input
-            ref={inputRef}
-            className="search-input"
-            placeholder="引用を検索…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            autoFocus
-          />
-          {searching && <p className="status">検索中…</p>}
-          {!searching && query && results.length === 0 && (
-            <p className="status">結果なし</p>
+      <div className="main">
+        {/* ── Sidebar 30% ── */}
+        <aside className="sidebar">
+          {items.length === 0 && !searching && (
+            <p className="sidebar-empty">{query ? "結果なし" : "引用がありません"}</p>
           )}
-          <div className="cards">
-            {results.map((r) => (
-              <QuoteCard
-                key={r.quote.id}
-                quote={r.quote}
-                score={r.score}
-                onSelect={openHistory}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+          {items.map(({ quote: q, score }) => (
+            <div
+              key={q.id}
+              className={`sidebar-item${selected?.quote.id === q.id ? " selected" : ""}`}
+              onClick={() => selectQuote(q, score)}
+            >
+              <p className="si-quote">{q.quote}</p>
+              {q.source && <p className="si-source">— {q.source}</p>}
+              {score !== undefined && <span className="si-score">{score.toFixed(2)}</span>}
+            </div>
+          ))}
+        </aside>
 
-      {/* ── List view ── */}
-      {view === "list" && (
-        <div className="list-view">
-          <div className="cards">
-            {allQuotes.map((q) => (
-              <QuoteCard key={q.id} quote={q} onSelect={openHistory} />
-            ))}
-          </div>
-        </div>
-      )}
+        {/* ── Content 70% ── */}
+        <main className="content">
+          {selected ? (
+            <QuoteDetail
+              quote={selected.quote}
+              score={selected.score}
+              versions={selectedVersions}
+            />
+          ) : (
+            <div className="content-empty">← 左の引用を選択してください</div>
+          )}
+        </main>
+      </div>
 
-      {/* ── Modals ── */}
       {showAdd && (
-        <AddForm onAdded={loadList} onClose={() => setShowAdd(false)} />
-      )}
-      {history && (
-        <DiffView
-          versions={history.versions}
-          onClose={() => setHistory(null)}
+        <AddForm
+          onAdded={() => { loadList(); }}
+          onClose={() => setShowAdd(false)}
         />
       )}
     </div>

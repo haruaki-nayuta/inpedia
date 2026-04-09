@@ -20,7 +20,7 @@
 .add-close:hover { color: #ccc; }
 .add-body {
   padding: 1rem; display: flex; flex-direction: column; gap: 0.7rem;
-  overflow-y: auto; max-height: 65vh;
+  overflow-y: auto; max-height: 80vh;
 }
 .add-body label {
   display: flex; flex-direction: column; gap: 0.25rem;

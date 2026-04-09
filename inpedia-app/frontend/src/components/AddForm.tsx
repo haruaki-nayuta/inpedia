@@ -50,7 +50,7 @@ export function AddForm({ onAdded, onClose }: Props) {
             <textarea
               value={quote}
               onChange={(e) => setQuote(e.target.value)}
-              rows={4}
+              rows={2}
               required
               autoFocus
             />
@@ -65,7 +65,7 @@ export function AddForm({ onAdded, onClose }: Props) {
           </label>
           <label>
             メモ
-            <textarea value={memo} onChange={(e) => setMemo(e.target.value)} rows={3} />
+            <textarea value={memo} onChange={(e) => setMemo(e.target.value)} rows={10} />
           </label>
           {error && <p className="add-error">{error}</p>}
         </div>
