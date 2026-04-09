@@ -65,7 +65,7 @@ export default function App() {
           autoFocus
         />
         {searching && <span className="searching-dot">●</span>}
-        <button className="btn-add" onClick={() => setShowAdd(true)}>+ 追加</button>
+        <button className="btn-add" onClick={() => setShowAdd(true)}>+ 引用を追加</button>
       </header>
 
       <div className="main">
